@@ -1,15 +1,79 @@
 # Maven
 target/
-*.iml
-.project
-.classpath
-.settings/
+dependency-reduced-pom.xml
+pom.xml.tag
+pom.xml.releaseBackup
+pom.xml.versionsBackup
+pom.xml.next
 
 # IDEs
 .idea/
 .vscode/
+*.iml
 
 # OS
 .DS_Store
+Thumbs.db
+Desktop.ini
 
+# Logs
+logs/
+*.log
+*.out
+*.err
+
+# Spring Boot config files
+application-dev.properties
+application-*.properties
+application-*.yml
+application-*.yaml
+
+# sample config allowed
+!application-example.properties
+!application-example.yml
+
+# Environment / secrets
+.env
+.env.*
+*.env
+
+# Credentials
+*.key
+*.crt
+*.pem
+*.p12
+*.jks
+*.keystore
+
+# DB files
+*.db
+*.sqlite
+*.mv.db
+*.h2.db
+
+# Temporary / cache
+*.tmp
+*.cache
+tmp/
+temp/
+*.pid
+
+# Build output
+out/
+classes/
+
+# Data
+uploads/
+storage/
+
+# Testing output
+surefire-reports/
+failsafe-reports/
+test-output/
+
+# Scripts
+*.sh~
+*.sql~
+
+# Misc
 EVALUATION_RUBRIC.md
