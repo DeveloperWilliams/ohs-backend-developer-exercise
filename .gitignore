@@ -74,6 +74,7 @@ test-output/
 # Scripts
 *.sh~
 *.sql~
+*.sh
 
 # Misc
 EVALUATION_RUBRIC.md
