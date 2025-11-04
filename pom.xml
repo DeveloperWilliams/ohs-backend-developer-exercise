@@ -60,12 +60,11 @@
       <artifactId>h2</artifactId>
       <scope>runtime</scope>
     </dependency>
-    
-    <!-- Database - PostgreSQL (Production) -->
+
+    <!-- Database - PostgreSQL -->
     <dependency>
       <groupId>org.postgresql</groupId>
       <artifactId>postgresql</artifactId>
-      <version>${postgresql.version}</version>
       <scope>runtime</scope>
     </dependency>
     
@@ -73,7 +72,6 @@
     <dependency>
       <groupId>org.flywaydb</groupId>
       <artifactId>flyway-core</artifactId>
-      <version>${flyway.version}</version>
     </dependency>
     
     <!-- Testing -->
@@ -97,6 +95,10 @@
       <artifactId>postgresql</artifactId>
       <scope>test</scope>
     </dependency>
+    <dependency>
+    <groupId>org.springframework.boot</groupId>
+    <artifactId>spring-boot-starter-security</artifactId>
+   </dependency>
   </dependencies>
   
   <build>
@@ -108,7 +110,6 @@
       <plugin>
         <groupId>org.flywaydb</groupId>
         <artifactId>flyway-maven-plugin</artifactId>
-        <version>${flyway.version}</version>
         <configuration>
           <url>jdbc:h2:file:./target/testdb</url>
           <user>sa</user>
