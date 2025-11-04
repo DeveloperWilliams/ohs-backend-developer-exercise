@@ -1,0 +1,44 @@
+version: '3.8'
+
+services:
+  health-api:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
+    container_name: county-hospital-api
+    ports:
+      - "8080:8080"
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/healthdb
+      - SPRING_DATASOURCE_USERNAME=healthuser
+      - SPRING_DATASOURCE_PASSWORD=healthpass
+      - APP_SECURITY_ENABLED=true
+      - APP_SECURITY_API_KEY=hospital-docker-key-2024
+    depends_on:
+      - postgres
+    networks:
+      - health-network
+
+  postgres:
+    image: postgres:15-alpine
+    container_name: health-postgres
+    environment:
+      - POSTGRES_DB=healthdb
+      - POSTGRES_USER=healthuser
+      - POSTGRES_PASSWORD=healthpass
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ../src/main/resources/db/schema.sql:/docker-entrypoint-initdb.d/01-schema.sql
+      - ../src/main/resources/db/data.sql:/docker-entrypoint-initdb.d/02-data.sql
+    networks:
+      - health-network
+
+volumes:
+  postgres_data:
+
+networks:
+  health-network:
+    driver: bridge
