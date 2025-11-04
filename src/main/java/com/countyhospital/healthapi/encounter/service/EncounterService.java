@@ -1,5 +1,6 @@
 package com.countyhospital.healthapi.encounter.service;
 
+
 import java.time.LocalDateTime;
 import java.util.List;
 
