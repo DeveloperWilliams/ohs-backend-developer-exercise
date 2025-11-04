@@ -1,5 +1,28 @@
 package com.countyhospital.healthapi.service;
 
+import java.time.LocalDateTime;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Optional;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import static org.mockito.ArgumentMatchers.any;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+
 import com.countyhospital.healthapi.common.exception.BusinessException;
 import com.countyhospital.healthapi.common.exception.ResourceNotFoundException;
 import com.countyhospital.healthapi.common.exception.ValidationException;
@@ -8,26 +31,6 @@ import com.countyhospital.healthapi.encounter.repository.EncounterRepository;
 import com.countyhospital.healthapi.encounter.service.EncounterServiceImpl;
 import com.countyhospital.healthapi.patient.domain.Patient;
 import com.countyhospital.healthapi.patient.service.PatientService;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
-
-import java.time.LocalDateTime;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Optional;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.mockito.ArgumentMatchers.*;
-import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class EncounterServiceTest {
@@ -155,11 +158,11 @@ class EncounterServiceTest {
 
     @Test
     void whenGetEncountersByPatientIdWithPagination_thenReturnPage() {
-        // Given
-        Pageable pageable = PageRequest.of(0, 10);
-        Page<Encounter> encounterPage = new PageImpl<>(Arrays.asList(encounter1, encounter2));
-        when(patientService.getPatientById(1L)).thenReturn(patient);
-       // when(encounterRepository.findAll(any(), eq(pageable))).thenReturn(encounterPage);
+    // Given
+    Pageable pageable = PageRequest.of(0, 10);
+    when(patientService.getPatientById(1L)).thenReturn(patient);
+    // when(encounterRepository.findAll(any(), eq(pageable))).thenReturn(new PageImpl<>(Arrays.asList(encounter1, encounter2)));
+    when(encounterRepository.findByPatientId(1L)).thenReturn(Arrays.asList(encounter1, encounter2));
 
         // When
         Page<Encounter> result = encounterService.getEncountersByPatientId(1L, pageable);

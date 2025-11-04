@@ -37,7 +37,7 @@ CREATE TABLE IF NOT EXISTS observations (
     encounter_id BIGINT NULL,
     code VARCHAR(50) NOT NULL,
     display_name VARCHAR(200) NOT NULL,
-    value VARCHAR(500) NOT NULL,
+    "value" VARCHAR(500) NOT NULL,
     unit VARCHAR(50) NULL,
     effective_date_time TIMESTAMP NOT NULL,
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,

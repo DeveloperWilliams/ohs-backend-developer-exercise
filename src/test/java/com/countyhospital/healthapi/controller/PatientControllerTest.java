@@ -52,7 +52,7 @@ class PatientControllerTest {
     private PatientRequest patientRequest;
 
     @BeforeEach
-    void setUp() {
+    public void setUp() {
         patient = new Patient("PAT-001", "John", "Doe", 
                              LocalDate.of(1985, 5, 15), "MALE");
         patient.setId(1L);
