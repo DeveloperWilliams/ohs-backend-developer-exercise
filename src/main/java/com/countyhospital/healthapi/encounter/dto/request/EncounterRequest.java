@@ -18,12 +18,12 @@ public class EncounterRequest {
     private Long patientId;
 
     @NotNull(message = "Start date time is required")
-    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss")
-    @Schema(description = "Encounter start date time", example = "2024-01-15 09:30:00", required = true)
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'")
+    @Schema(description = "Encounter start date time", example = "2024-01-15T09:30:00.000Z", required = true)
     private LocalDateTime startDateTime;
 
-    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss")
-    @Schema(description = "Encounter end date time", example = "2024-01-15 10:15:00")
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'")
+    @Schema(description = "Encounter end date time", example = "2024-01-15T10:15:00.000Z")
     private LocalDateTime endDateTime;
 
     @NotBlank(message = "Encounter class is required")

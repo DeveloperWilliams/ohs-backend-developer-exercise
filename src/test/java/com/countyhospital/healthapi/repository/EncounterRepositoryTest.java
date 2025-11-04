@@ -32,8 +32,8 @@ class EncounterRepositoryTest {
     private Encounter encounter3;
 
     @BeforeEach
-    void setUp() {
-        // Clear any existing data
+    public void setUp() {
+        
         entityManager.clear();
 
         // Create test patients

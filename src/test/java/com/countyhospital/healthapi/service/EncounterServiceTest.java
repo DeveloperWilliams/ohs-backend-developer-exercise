@@ -49,7 +49,7 @@ class EncounterServiceTest {
     private Encounter encounter2;
 
     @BeforeEach
-    void setUp() {
+    public void setUp() {
         patient = new Patient("PAT-SERVICE-001", "John", "Doe", 
                              java.time.LocalDate.of(1985, 5, 15), "MALE");
         patient.setId(1L);
