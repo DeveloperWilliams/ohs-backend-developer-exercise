@@ -39,7 +39,7 @@ import jakarta.validation.Valid;
 
 @RestController
 @RequestMapping("/api/patients")
-@Tag(name = "Patient Management", description = "APIs for managing patient records")
+@Tag(name = "01 - Patient Management", description = "APIs for managing patient records")
 public class PatientController {
 
     private static final Logger logger = LoggerFactory.getLogger(PatientController.class);

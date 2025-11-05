@@ -7,10 +7,10 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 import io.swagger.v3.oas.models.OpenAPI;
-import io.swagger.v3.oas.models.info.Contact;
 import io.swagger.v3.oas.models.info.Info;
 import io.swagger.v3.oas.models.info.License;
 import io.swagger.v3.oas.models.servers.Server;
+import io.swagger.v3.oas.models.tags.Tag;
 
 @Configuration
 public class OpenApiConfig {
@@ -23,50 +23,66 @@ public class OpenApiConfig {
 
     @Bean
     public OpenAPI customOpenAPI() {
+
+        //  order
+        List<Tag> tags = List.of(
+                new Tag()
+                        .name("01 - Patient Management")
+                        .description("APIs for managing patient records"),
+
+                new Tag()
+                        .name("02 - Encounter Management")
+                        .description("APIs for managing patient encounters")
+        );
+
+        // Servers
+        List<Server> servers = List.of(
+                new Server()
+                        .url(environment.equals("prod")
+                                ? "https://api.countyhospital.org"
+                                : "http://localhost:8080")
+                        .description(environment.equals("prod")
+                                ? "Production Server"
+                                : "Local Development Server"),
+
+                new Server()
+                        .url("https://staging.countyhospital.org")
+                        .description("Staging Server")
+        );
+
+        //info
+        Info info = new Info()
+                .title("County Hospital Health API")
+                .version(appVersion)
+                .description(
+                        """
+                        REST API for managing patient records and encounters.
+
+                        ## Key Features
+                        - Patient Management CRUD
+                        - Encounter Tracking
+                        - Comprehensive Searching
+                        - Input Validation & Error Handling
+                        - Optional API Key Security
+                        - Swagger Interactive Documentation
+
+                        ## Healthcare Standards
+                        - FHIR-inspired data models
+                        - ISO date formats
+                        - Gender: MALE, FEMALE, OTHER, UNKNOWN
+                        - EncounterClass: INPATIENT, OUTPATIENT, EMERGENCY, VIRTUAL
+                        """
+                )
+                .license(
+                        new License()
+                                .name("Apache 2.0")
+                                .url("http://www.apache.org/licenses/LICENSE-2.0.html")
+                );
+
+        // Final OpenAPI object
         return new OpenAPI()
-                .info(new Info()
-                        .title("County Hospital Health API")
-                        .description(String.join("\n",
-                                "REST API for managing patient records and encounters for County Hospital.",
-                                "This API provides comprehensive healthcare data management including:",
-                                "- Patient registration and management",
-                                "- Encounter (visit) tracking",
-                                "- Advanced patient search capabilities",
-                                "- Secure data access",
-                                "",
-                                "## Key Features",
-                                "- **Patient Management**: Full CRUD operations for patient records",
-                                "- **Encounter Tracking**: Record and manage patient visits",
-                                "- **Advanced Search**: Flexible patient search by multiple criteria",
-                                "- **Validation**: Comprehensive input validation and error handling",
-                                "- **Security**: API key authentication (optional)",
-                                "- **Documentation**: Interactive API documentation",
-                                "",
-                                "## Healthcare Standards",
-                                "- FHIR-inspired data models",
-                                "- ISO date formats",
-                                "- Standard gender codes (MALE, FEMALE, OTHER, UNKNOWN)",
-                                "- Encounter classification (INPATIENT, OUTPATIENT, EMERGENCY, VIRTUAL)"
-                        ))
-                        .version(appVersion)
-                        .contact(new Contact()
-                                .name("County Hospital IT Support")
-                                .email("it-support@countyhospital.org")
-                                .url("https://www.countyhospital.org"))
-                        .license(new License()
-                                .name("Hospital Internal Use")
-                                .url("https://www.countyhospital.org/license")))
-                .servers(List.of(
-                        new Server()
-                                .url(environment.equals("prod") ? 
-                                        "https://api.countyhospital.org" : 
-                                        "http://localhost:8080")
-                                .description(environment.equals("prod") ? 
-                                        "Production Server" : 
-                                        "Local Development Server"),
-                        new Server()
-                                .url("https://staging.countyhospital.org")
-                                .description("Staging Server")
-                ));
+                .info(info)
+                .servers(servers)
+                .tags(tags);  
     }
 }
