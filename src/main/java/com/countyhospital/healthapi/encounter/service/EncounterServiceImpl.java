@@ -15,7 +15,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.List;
 
 @Service
@@ -105,8 +105,7 @@ public class EncounterServiceImpl implements EncounterService {
         // Verify patient exists
         patientService.getPatientById(patientId);
         
-        return encounterRepository.findAll((root, query, criteriaBuilder) -> 
-            criteriaBuilder.equal(root.get("patient").get("id"), patientId), pageable);
+        return encounterRepository.findByPatientId(patientId, pageable);
     }
 
     @Override
@@ -125,7 +124,7 @@ public class EncounterServiceImpl implements EncounterService {
 
     @Override
     @Transactional(readOnly = true)
-    public List<Encounter> getEncountersByDateRange(LocalDateTime start, LocalDateTime end) {
+    public List<Encounter> getEncountersByDateRange(Instant start, Instant end) {
         logger.debug("Retrieving encounters in date range: {} to {}", start, end);
         
         validateDateRange(start, end);
@@ -135,7 +134,7 @@ public class EncounterServiceImpl implements EncounterService {
 
     @Override
     @Transactional(readOnly = true)
-    public List<Encounter> getEncountersByPatientIdAndDateRange(Long patientId, LocalDateTime start, LocalDateTime end) {
+    public List<Encounter> getEncountersByPatientIdAndDateRange(Long patientId, Instant start, Instant end) {
         logger.debug("Retrieving encounters for patient {} in date range: {} to {}", patientId, start, end);
         
         validatePatientId(patientId);
@@ -144,7 +143,7 @@ public class EncounterServiceImpl implements EncounterService {
         // Verify patient exists
         patientService.getPatientById(patientId);
         
-        return encounterRepository.findByPatientIdAndDateRange(patientId, start, end);
+        return encounterRepository.findByPatientIdAndStartDateTimeBetween(patientId, start, end);
     }
 
     @Override
@@ -293,7 +292,7 @@ public class EncounterServiceImpl implements EncounterService {
         }
     }
 
-    private void validateDateRange(LocalDateTime start, LocalDateTime end) {
+    private void validateDateRange(Instant start, Instant end) {
         if (start == null && end == null) {
             throw new ValidationException("At least one of start or end date must be provided");
         }

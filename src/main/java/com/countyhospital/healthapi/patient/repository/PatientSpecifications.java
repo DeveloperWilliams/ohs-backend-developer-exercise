@@ -68,7 +68,7 @@ public class PatientSpecifications {
     public static Specification<Patient> searchByCriteria(String familyName, String givenName, 
                                                          String identifier, LocalDate birthDate,
                                                          LocalDate birthDateStart, LocalDate birthDateEnd) {
-        return Specification.where(hasFamilyName(familyName))
+        return hasFamilyName(familyName)
                 .and(hasGivenName(givenName))
                 .and(hasIdentifier(identifier))
                 .and(hasBirthDate(birthDate))

@@ -1,7 +1,6 @@
 package com.countyhospital.healthapi.encounter.service;
 
-
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.List;
 
 import org.springframework.data.domain.Page;
@@ -23,9 +22,9 @@ public interface EncounterService {
     
     Page<Encounter> getAllEncounters(Pageable pageable);
     
-    List<Encounter> getEncountersByDateRange(LocalDateTime start, LocalDateTime end);
+    List<Encounter> getEncountersByDateRange(Instant start, Instant end);
     
-    List<Encounter> getEncountersByPatientIdAndDateRange(Long patientId, LocalDateTime start, LocalDateTime end);
+    List<Encounter> getEncountersByPatientIdAndDateRange(Long patientId, Instant start, Instant end);
     
     List<Encounter> getEncountersByClass(String encounterClass);
     

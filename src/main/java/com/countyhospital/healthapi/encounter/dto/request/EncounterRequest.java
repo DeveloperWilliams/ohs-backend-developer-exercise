@@ -1,8 +1,6 @@
 package com.countyhospital.healthapi.encounter.dto.request;
 
-import java.time.LocalDateTime;
-
-import com.fasterxml.jackson.annotation.JsonFormat;
+import java.time.Instant;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
@@ -18,13 +16,11 @@ public class EncounterRequest {
     private Long patientId;
 
     @NotNull(message = "Start date time is required")
-    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'")
-    @Schema(description = "Encounter start date time", example = "2024-01-15T09:30:00.000Z", required = true)
-    private LocalDateTime startDateTime;
+    @Schema(description = "Encounter start date time in UTC", example = "2024-01-15T09:30:00Z", required = true)
+    private Instant startDateTime;
 
-    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'")
-    @Schema(description = "Encounter end date time", example = "2024-01-15T10:15:00.000Z")
-    private LocalDateTime endDateTime;
+    @Schema(description = "Encounter end date time in UTC", example = "2024-01-15T10:15:00Z")
+    private Instant endDateTime;
 
     @NotBlank(message = "Encounter class is required")
     @Pattern(regexp = "^(INPATIENT|OUTPATIENT|EMERGENCY|VIRTUAL)$", 
@@ -40,7 +36,7 @@ public class EncounterRequest {
     // Constructors
     public EncounterRequest() {}
 
-    public EncounterRequest(Long patientId, LocalDateTime startDateTime, LocalDateTime endDateTime, 
+    public EncounterRequest(Long patientId, Instant startDateTime, Instant endDateTime, 
                            String encounterClass, String description) {
         this.patientId = patientId;
         this.startDateTime = startDateTime;
@@ -53,11 +49,11 @@ public class EncounterRequest {
     public Long getPatientId() { return patientId; }
     public void setPatientId(Long patientId) { this.patientId = patientId; }
 
-    public LocalDateTime getStartDateTime() { return startDateTime; }
-    public void setStartDateTime(LocalDateTime startDateTime) { this.startDateTime = startDateTime; }
+    public Instant getStartDateTime() { return startDateTime; }
+    public void setStartDateTime(Instant startDateTime) { this.startDateTime = startDateTime; }
 
-    public LocalDateTime getEndDateTime() { return endDateTime; }
-    public void setEndDateTime(LocalDateTime endDateTime) { this.endDateTime = endDateTime; }
+    public Instant getEndDateTime() { return endDateTime; }
+    public void setEndDateTime(Instant endDateTime) { this.endDateTime = endDateTime; }
 
     public String getEncounterClass() { return encounterClass; }
     public void setEncounterClass(String encounterClass) { this.encounterClass = encounterClass; }

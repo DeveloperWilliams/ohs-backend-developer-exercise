@@ -1,7 +1,7 @@
 package com.countyhospital.healthapi.patient.dto.response;
 
+import java.time.Instant;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 
@@ -29,20 +29,20 @@ public class PatientResponse {
     @Schema(description = "Patient's gender", example = "MALE")
     private String gender;
 
-    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss")
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", timezone = "UTC")
     @Schema(description = "Patient record creation timestamp")
-    private LocalDateTime createdAt;
+    private Instant createdAt;
 
-    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss")
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", timezone = "UTC")
     @Schema(description = "Patient record last update timestamp")
-    private LocalDateTime updatedAt;
+    private Instant updatedAt;
 
     // Default constructor
     public PatientResponse() {}
 
     // All arguments constructor
     public PatientResponse(Long id, String identifier, String givenName, String familyName, 
-                          LocalDate birthDate, String gender, LocalDateTime createdAt, LocalDateTime updatedAt) {
+                          LocalDate birthDate, String gender, Instant createdAt, Instant updatedAt) {
         this.id = id;
         this.identifier = identifier;
         this.givenName = givenName;
@@ -72,11 +72,11 @@ public class PatientResponse {
     public String getGender() { return gender; }
     public void setGender(String gender) { this.gender = gender; }
 
-    public LocalDateTime getCreatedAt() { return createdAt; }
-    public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
+    public Instant getCreatedAt() { return createdAt; }
+    public void setCreatedAt(Instant createdAt) { this.createdAt = createdAt; }
 
-    public LocalDateTime getUpdatedAt() { return updatedAt; }
-    public void setUpdatedAt(LocalDateTime updatedAt) { this.updatedAt = updatedAt; }
+    public Instant getUpdatedAt() { return updatedAt; }
+    public void setUpdatedAt(Instant updatedAt) { this.updatedAt = updatedAt; }
 
     @Override
     public String toString() {
