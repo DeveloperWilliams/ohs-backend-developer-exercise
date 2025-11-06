@@ -1,6 +1,6 @@
 package com.countyhospital.healthapi.service;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
@@ -47,6 +47,10 @@ class EncounterServiceTest {
     private Patient patient;
     private Encounter encounter1;
     private Encounter encounter2;
+    private Instant startTime1;
+    private Instant startTime2;
+    private Instant endTime1;
+    private Instant endTime2;
 
     @BeforeEach
     public void setUp() {
@@ -54,16 +58,16 @@ class EncounterServiceTest {
                              java.time.LocalDate.of(1985, 5, 15), "MALE");
         patient.setId(1L);
 
-        encounter1 = new Encounter(patient,
-                LocalDateTime.of(2024, 1, 10, 9, 0),
-                LocalDateTime.of(2024, 1, 10, 10, 30),
-                "OUTPATIENT", "Annual physical examination");
+        // Create Instant timestamps for test data
+        startTime1 = Instant.parse("2024-01-10T09:00:00Z");
+        endTime1 = Instant.parse("2024-01-10T10:30:00Z");
+        startTime2 = Instant.parse("2024-01-15T14:15:00Z");
+        endTime2 = Instant.parse("2024-01-15T15:00:00Z");
+
+        encounter1 = new Encounter(patient, startTime1, endTime1, "OUTPATIENT", "Annual physical examination");
         encounter1.setId(1L);
 
-        encounter2 = new Encounter(patient,
-                LocalDateTime.of(2024, 1, 15, 14, 15),
-                LocalDateTime.of(2024, 1, 15, 15, 0),
-                "OUTPATIENT", "Follow-up consultation");
+        encounter2 = new Encounter(patient, startTime2, endTime2, "OUTPATIENT", "Follow-up consultation");
         encounter2.setId(2L);
     }
 
@@ -103,10 +107,8 @@ class EncounterServiceTest {
     @Test
     void whenCreateEncounterWithInvalidDateRange_thenThrowException() {
         // Given
-        Encounter invalidEncounter = new Encounter(patient,
-                LocalDateTime.of(2024, 1, 10, 9, 0),
-                LocalDateTime.of(2024, 1, 10, 8, 0), // End before start
-                "OUTPATIENT", "Invalid date range");
+        Instant invalidEndTime = Instant.parse("2024-01-10T08:00:00Z"); // End before start
+        Encounter invalidEncounter = new Encounter(patient, startTime1, invalidEndTime, "OUTPATIENT", "Invalid date range");
 
         when(patientService.getPatientById(1L)).thenReturn(patient);
         when(encounterRepository.existsByPatientAndStartDateTime(patient, invalidEncounter.getStartDateTime()))
@@ -158,11 +160,13 @@ class EncounterServiceTest {
 
     @Test
     void whenGetEncountersByPatientIdWithPagination_thenReturnPage() {
-    // Given
-    Pageable pageable = PageRequest.of(0, 10);
-    when(patientService.getPatientById(1L)).thenReturn(patient);
-    // when(encounterRepository.findAll(any(), eq(pageable))).thenReturn(new PageImpl<>(Arrays.asList(encounter1, encounter2)));
-    when(encounterRepository.findByPatientId(1L)).thenReturn(Arrays.asList(encounter1, encounter2));
+        // Given
+        Pageable pageable = PageRequest.of(0, 10);
+        List<Encounter> encounters = Arrays.asList(encounter1, encounter2);
+        Page<Encounter> encounterPage = new PageImpl<>(encounters, pageable, encounters.size());
+        
+        when(patientService.getPatientById(1L)).thenReturn(patient);
+        when(encounterRepository.findByPatientId(1L, pageable)).thenReturn(encounterPage);
 
         // When
         Page<Encounter> result = encounterService.getEncountersByPatientId(1L, pageable);
@@ -175,8 +179,8 @@ class EncounterServiceTest {
     @Test
     void whenGetEncountersByDateRange_thenReturnFilteredEncounters() {
         // Given
-        LocalDateTime start = LocalDateTime.of(2024, 1, 9, 0, 0);
-        LocalDateTime end = LocalDateTime.of(2024, 1, 11, 0, 0);
+        Instant start = Instant.parse("2024-01-09T00:00:00Z");
+        Instant end = Instant.parse("2024-01-11T00:00:00Z");
         List<Encounter> encounters = Arrays.asList(encounter1);
         
         when(encounterRepository.findByStartDateTimeBetween(start, end)).thenReturn(encounters);
@@ -215,10 +219,8 @@ class EncounterServiceTest {
     @Test
     void whenUpdateValidEncounter_thenEncounterIsUpdated() {
         // Given
-        Encounter updatedDetails = new Encounter(patient,
-                LocalDateTime.of(2024, 1, 10, 9, 0),
-                LocalDateTime.of(2024, 1, 10, 11, 0), // Updated end time
-                "INPATIENT", "Updated description");
+        Instant updatedEndTime = Instant.parse("2024-01-10T11:00:00Z");
+        Encounter updatedDetails = new Encounter(patient, startTime1, updatedEndTime, "INPATIENT", "Updated description");
 
         when(encounterRepository.findById(1L)).thenReturn(Optional.of(encounter1));
         when(patientService.getPatientById(1L)).thenReturn(patient);
@@ -237,10 +239,8 @@ class EncounterServiceTest {
     @Test
     void whenUpdateEncounterWithDuplicateStartTime_thenThrowException() {
         // Given
-        Encounter updatedDetails = new Encounter(patient,
-                LocalDateTime.of(2024, 1, 20, 9, 0), // Different start time
-                LocalDateTime.of(2024, 1, 20, 10, 0),
-                "OUTPATIENT", "Updated");
+        Instant differentStartTime = Instant.parse("2024-01-20T09:00:00Z");
+        Encounter updatedDetails = new Encounter(patient, differentStartTime, endTime1, "OUTPATIENT", "Updated");
 
         when(encounterRepository.findById(1L)).thenReturn(Optional.of(encounter1));
         when(patientService.getPatientById(1L)).thenReturn(patient);
@@ -294,7 +294,8 @@ class EncounterServiceTest {
     void whenGetAllEncountersWithPagination_thenReturnPage() {
         // Given
         Pageable pageable = PageRequest.of(0, 10);
-        Page<Encounter> encounterPage = new PageImpl<>(Arrays.asList(encounter1, encounter2));
+        List<Encounter> encounters = Arrays.asList(encounter1, encounter2);
+        Page<Encounter> encounterPage = new PageImpl<>(encounters, pageable, encounters.size());
         when(encounterRepository.findAll(pageable)).thenReturn(encounterPage);
 
         // When
@@ -303,5 +304,43 @@ class EncounterServiceTest {
         // Then
         assertThat(result.getContent()).hasSize(2);
         assertThat(result.getTotalElements()).isEqualTo(2);
+    }
+
+    @Test
+    void whenCreateEncounterWithNullPatient_thenThrowException() {
+        // Given
+        Encounter encounterWithNullPatient = new Encounter();
+        encounterWithNullPatient.setStartDateTime(startTime1);
+        encounterWithNullPatient.setEncounterClass("OUTPATIENT");
+
+        // When & Then
+        assertThatThrownBy(() -> encounterService.createEncounter(encounterWithNullPatient))
+                .isInstanceOf(ValidationException.class)
+                .hasMessageContaining("Patient is required");
+    }
+
+    @Test
+    void whenCreateEncounterWithNullStartDateTime_thenThrowException() {
+        // Given
+        Encounter encounterWithNullStartTime = new Encounter();
+        encounterWithNullStartTime.setPatient(patient);
+        encounterWithNullStartTime.setEncounterClass("OUTPATIENT");
+
+        // When & Then
+        assertThatThrownBy(() -> encounterService.createEncounter(encounterWithNullStartTime))
+                .isInstanceOf(ValidationException.class)
+                .hasMessageContaining("Start date time is required");
+    }
+
+    @Test
+    void whenGetEncountersByDateRangeWithInvalidRange_thenThrowException() {
+        // Given
+        Instant start = Instant.parse("2024-01-11T00:00:00Z");
+        Instant end = Instant.parse("2024-01-09T00:00:00Z"); // end before start
+
+        // When & Then
+        assertThatThrownBy(() -> encounterService.getEncountersByDateRange(start, end))
+                .isInstanceOf(ValidationException.class)
+                .hasMessageContaining("Start date cannot be after end date");
     }
 }

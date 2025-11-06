@@ -1,6 +1,6 @@
 package com.countyhospital.healthapi.repository;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -46,37 +46,26 @@ class EncounterRepositoryTest {
         entityManager.persist(patient2);
         entityManager.flush();
 
-        // Create test encounters
+        // Create test encounters using Instant
         encounter1 = new Encounter(patient1, 
-            LocalDateTime.of(2024, 1, 10, 9, 0),
-            LocalDateTime.of(2024, 1, 10, 10, 30),
+            Instant.parse("2024-01-10T09:00:00Z"),
+            Instant.parse("2024-01-10T10:30:00Z"),
             "OUTPATIENT", "Annual physical examination");
         
         encounter2 = new Encounter(patient1,
-            LocalDateTime.of(2024, 1, 15, 14, 15),
-            LocalDateTime.of(2024, 1, 15, 15, 0),
+            Instant.parse("2024-01-15T14:15:00Z"),
+            Instant.parse("2024-01-15T15:00:00Z"),
             "OUTPATIENT", "Follow-up consultation");
         
         encounter3 = new Encounter(patient2,
-            LocalDateTime.of(2024, 1, 12, 10, 30),
-            LocalDateTime.of(2024, 1, 12, 11, 45),
+            Instant.parse("2024-01-12T10:30:00Z"),
+            Instant.parse("2024-01-12T11:45:00Z"),
             "EMERGENCY", "Emergency room visit");
 
         entityManager.persist(encounter1);
         entityManager.persist(encounter2);
         entityManager.persist(encounter3);
         entityManager.flush();
-    }
-
-    @Test
-    void whenFindByPatient_thenReturnEncountersForThatPatient() {
-        // When
-        List<Encounter> encounters = encounterRepository.findByPatient(patient1);
-
-        // Then
-        assertThat(encounters).hasSize(2);
-        assertThat(encounters).extracting(Encounter::getPatient)
-                .allMatch(patient -> patient.getId().equals(patient1.getId()));
     }
 
     @Test
@@ -104,8 +93,8 @@ class EncounterRepositoryTest {
     @Test
     void whenFindByStartDateTimeBetween_thenReturnEncountersInDateRange() {
         // Given
-        LocalDateTime start = LocalDateTime.of(2024, 1, 14, 0, 0);
-        LocalDateTime end = LocalDateTime.of(2024, 1, 16, 0, 0);
+        Instant start = Instant.parse("2024-01-14T00:00:00Z");
+        Instant end = Instant.parse("2024-01-16T00:00:00Z");
 
         // When
         List<Encounter> encounters = encounterRepository.findByStartDateTimeBetween(start, end);
@@ -113,23 +102,23 @@ class EncounterRepositoryTest {
         // Then
         assertThat(encounters).hasSize(1);
         assertThat(encounters.get(0).getStartDateTime())
-                .isEqualTo(LocalDateTime.of(2024, 1, 15, 14, 15));
+                .isEqualTo(Instant.parse("2024-01-15T14:15:00Z"));
     }
 
     @Test
-    void whenFindByPatientIdAndDateRange_thenReturnFilteredEncounters() {
+    void whenFindByPatientIdAndStartDateTimeBetween_thenReturnFilteredEncounters() {
         // Given
-        LocalDateTime start = LocalDateTime.of(2024, 1, 9, 0, 0);
-        LocalDateTime end = LocalDateTime.of(2024, 1, 13, 0, 0);
+        Instant start = Instant.parse("2024-01-09T00:00:00Z");
+        Instant end = Instant.parse("2024-01-13T00:00:00Z");
 
         // When
-        List<Encounter> encounters = encounterRepository.findByPatientIdAndDateRange(
+        List<Encounter> encounters = encounterRepository.findByPatientIdAndStartDateTimeBetween(
                 patient1.getId(), start, end);
 
         // Then
         assertThat(encounters).hasSize(1);
         assertThat(encounters.get(0).getStartDateTime())
-                .isEqualTo(LocalDateTime.of(2024, 1, 10, 9, 0));
+                .isEqualTo(Instant.parse("2024-01-10T09:00:00Z"));
     }
 
     @Test
@@ -145,7 +134,7 @@ class EncounterRepositoryTest {
     void whenExistsByPatientAndStartDateTime_thenReturnTrueForExisting() {
         // When
         boolean exists = encounterRepository.existsByPatientAndStartDateTime(
-                patient1, LocalDateTime.of(2024, 1, 10, 9, 0));
+                patient1, Instant.parse("2024-01-10T09:00:00Z"));
 
         // Then
         assertThat(exists).isTrue();
@@ -155,7 +144,7 @@ class EncounterRepositoryTest {
     void whenExistsByPatientAndStartDateTime_thenReturnFalseForNonExisting() {
         // When
         boolean exists = encounterRepository.existsByPatientAndStartDateTime(
-                patient1, LocalDateTime.of(2024, 1, 20, 9, 0));
+                patient1, Instant.parse("2024-01-20T09:00:00Z"));
 
         // Then
         assertThat(exists).isFalse();
@@ -165,8 +154,8 @@ class EncounterRepositoryTest {
     void whenSaveEncounter_thenEncounterIsPersisted() {
         // Given
         Encounter newEncounter = new Encounter(patient2,
-                LocalDateTime.of(2024, 1, 20, 13, 0),
-                LocalDateTime.of(2024, 1, 20, 14, 0),
+                Instant.parse("2024-01-20T13:00:00Z"),
+                Instant.parse("2024-01-20T14:00:00Z"),
                 "VIRTUAL", "Telemedicine consultation");
 
         // When
@@ -184,7 +173,7 @@ class EncounterRepositoryTest {
     void whenDeleteEncounter_thenEncounterIsRemoved() {
         // When
         encounterRepository.delete(encounter1);
-        List<Encounter> remainingEncounters = encounterRepository.findByPatient(patient1);
+        List<Encounter> remainingEncounters = encounterRepository.findByPatientId(patient1.getId());
 
         // Then
         assertThat(remainingEncounters).hasSize(1);
@@ -213,5 +202,42 @@ class EncounterRepositoryTest {
         assertThat(updated.getDescription()).isEqualTo("Updated description");
         assertThat(updated.getEncounterClass()).isEqualTo("INPATIENT");
         assertThat(updated.getUpdatedAt()).isAfter(encounter1.getCreatedAt());
+    }
+
+    @Test
+    void whenFindByPatientIdWithNoEncounters_thenReturnEmptyList() {
+        // Given
+        Patient newPatient = new Patient("PAT-REPO-003", "Bob", "Johnson", 
+                                       java.time.LocalDate.of(1975, 3, 10), "MALE");
+        entityManager.persist(newPatient);
+        entityManager.flush();
+
+        // When
+        List<Encounter> encounters = encounterRepository.findByPatientId(newPatient.getId());
+
+        // Then
+        assertThat(encounters).isEmpty();
+    }
+
+    @Test
+    void whenFindByStartDateTimeBetweenWithNoResults_thenReturnEmptyList() {
+        // Given
+        Instant start = Instant.parse("2025-01-01T00:00:00Z");
+        Instant end = Instant.parse("2025-01-02T00:00:00Z");
+
+        // When
+        List<Encounter> encounters = encounterRepository.findByStartDateTimeBetween(start, end);
+
+        // Then
+        assertThat(encounters).isEmpty();
+    }
+
+    @Test
+    void whenFindByEncounterClassWithNoMatches_thenReturnEmptyList() {
+        // When
+        List<Encounter> encounters = encounterRepository.findByEncounterClass("INPATIENT");
+
+        // Then
+        assertThat(encounters).isEmpty();
     }
 }

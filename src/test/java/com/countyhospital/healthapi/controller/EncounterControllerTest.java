@@ -1,23 +1,23 @@
 package com.countyhospital.healthapi.controller;
 
+import java.time.Instant;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.List;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
 import static org.mockito.Mockito.when;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.http.MediaType;
-import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -25,6 +25,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
 import com.countyhospital.healthapi.encounter.controller.EncounterController;
 import com.countyhospital.healthapi.encounter.domain.Encounter;
@@ -36,23 +37,23 @@ import com.countyhospital.healthapi.patient.domain.Patient;
 import com.countyhospital.healthapi.patient.service.PatientService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-@WebMvcTest(EncounterController.class)
-@ActiveProfiles("test")
+@ExtendWith(MockitoExtension.class)
 class EncounterControllerTest {
 
-    @Autowired
     private MockMvc mockMvc;
 
-    @MockBean
+    @Mock
     private EncounterService encounterService;
 
-    @MockBean
+    @Mock
     private PatientService patientService;
 
-    @MockBean
+    @Mock
     private EncounterMapper encounterMapper;
 
-    @Autowired
+    @InjectMocks
+    private EncounterController encounterController;
+
     private ObjectMapper objectMapper;
 
     private Patient patient;
@@ -62,30 +63,31 @@ class EncounterControllerTest {
 
     @BeforeEach
     public void setUp() {
+        objectMapper = new ObjectMapper();
+        
+        // Setup MockMvc standalone
+        mockMvc = MockMvcBuilders.standaloneSetup(encounterController).build();
+
         patient = new Patient("PAT-001", "John", "Doe", 
                              LocalDate.of(1985, 5, 15), "MALE");
         patient.setId(1L);
-        patient.setCreatedAt(LocalDateTime.now());
-        patient.setUpdatedAt(LocalDateTime.now());
 
-        encounter = new Encounter(patient,
-                LocalDateTime.of(2024, 1, 10, 9, 0),
-                LocalDateTime.of(2024, 1, 10, 10, 30),
-                "OUTPATIENT", "Annual physical examination");
+        // Create test data using Instant
+        Instant startTime = Instant.parse("2024-01-10T09:00:00Z");
+        Instant endTime = Instant.parse("2024-01-10T10:30:00Z");
+        Instant createdAt = Instant.parse("2024-01-10T08:00:00Z");
+        Instant updatedAt = Instant.parse("2024-01-10T08:00:00Z");
+
+        encounter = new Encounter(patient, startTime, endTime, "OUTPATIENT", "Annual physical examination");
         encounter.setId(1L);
-        encounter.setCreatedAt(LocalDateTime.now());
-        encounter.setUpdatedAt(LocalDateTime.now());
+        encounter.setCreatedAt(createdAt);
+        encounter.setUpdatedAt(updatedAt);
 
         encounterResponse = new EncounterResponse(1L, 1L, "John", "Doe",
-                LocalDateTime.of(2024, 1, 10, 9, 0),
-                LocalDateTime.of(2024, 1, 10, 10, 30),
-                "OUTPATIENT", "Annual physical examination",
-                encounter.getCreatedAt(), encounter.getUpdatedAt());
+                startTime, endTime, "OUTPATIENT", "Annual physical examination",
+                createdAt, updatedAt);
 
-        encounterRequest = new EncounterRequest(1L,
-                LocalDateTime.of(2024, 1, 10, 9, 0),
-                LocalDateTime.of(2024, 1, 10, 10, 30),
-                "OUTPATIENT", "Annual physical examination");
+        encounterRequest = new EncounterRequest(1L, startTime, endTime, "OUTPATIENT", "Annual physical examination");
     }
 
     @Test
@@ -174,13 +176,13 @@ class EncounterControllerTest {
         List<Encounter> encounters = Arrays.asList(encounter);
         List<EncounterResponse> responses = Arrays.asList(encounterResponse);
 
-        when(encounterService.getEncountersByDateRange(any(LocalDateTime.class), any(LocalDateTime.class)))
+        when(encounterService.getEncountersByDateRange(any(Instant.class), any(Instant.class)))
                 .thenReturn(encounters);
         when(encounterMapper.toResponseList(encounters)).thenReturn(responses);
 
         mockMvc.perform(get("/api/encounters/search/date-range")
-                .param("start", "2024-01-01 00:00:00")
-                .param("end", "2024-01-31 23:59:59"))
+                .param("start", "2024-01-01T00:00:00Z")
+                .param("end", "2024-01-31T23:59:59Z"))
                 .andExpect(status().isOk());
     }
 
@@ -238,8 +240,8 @@ class EncounterControllerTest {
     @Test
     void updateEncounter_WithInvalidEncounterClass_ReturnsBadRequest() throws Exception {
         EncounterRequest invalidRequest = new EncounterRequest(1L,
-                LocalDateTime.of(2024, 1, 10, 9, 0),
-                LocalDateTime.of(2024, 1, 10, 10, 30),
+                Instant.parse("2024-01-10T09:00:00Z"),
+                Instant.parse("2024-01-10T10:30:00Z"),
                 "INVALID_CLASS", "Test description");
 
         mockMvc.perform(put("/api/encounters/1")
@@ -252,7 +254,71 @@ class EncounterControllerTest {
     void getEncountersByDateRange_WithInvalidDateRange_ReturnsBadRequest() throws Exception {
         mockMvc.perform(get("/api/encounters/search/date-range")
                 .param("start", "invalid-date")
-                .param("end", "2024-01-31 23:59:59"))
+                .param("end", "2024-01-31T23:59:59Z"))
                 .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void createEncounter_WithEndTimeBeforeStartTime_ReturnsBadRequest() throws Exception {
+        EncounterRequest invalidRequest = new EncounterRequest(1L,
+                Instant.parse("2024-01-10T09:00:00Z"),
+                Instant.parse("2024-01-10T08:00:00Z"), // End before start
+                "OUTPATIENT", "Invalid time range");
+
+        mockMvc.perform(post("/api/encounters")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(invalidRequest)))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void getEncountersByDateRange_WithMissingParameters_ReturnsBadRequest() throws Exception {
+        mockMvc.perform(get("/api/encounters/search/date-range"))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void getEncountersByClass_WithInvalidClass_ReturnsBadRequest() throws Exception {
+        mockMvc.perform(get("/api/encounters/search/class/INVALID_CLASS"))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void createEncounter_WithNullRequiredFields_ReturnsBadRequest() throws Exception {
+        String invalidJson = """
+            {
+                "patientId": null,
+                "startDateTime": null,
+                "encounterClass": null
+            }
+            """;
+
+        mockMvc.perform(post("/api/encounters")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(invalidJson))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void createEncounter_WithValidISOFormat_ReturnsCreated() throws Exception {
+        String validJson = """
+            {
+                "patientId": 1,
+                "startDateTime": "2024-01-15T09:30:00.000Z",
+                "endDateTime": "2024-01-15T10:15:00.000Z",
+                "encounterClass": "OUTPATIENT",
+                "description": "Routine checkup"
+            }
+            """;
+
+        when(patientService.getPatientById(1L)).thenReturn(patient);
+        when(encounterMapper.toEntity(any(EncounterRequest.class), eq(patient))).thenReturn(encounter);
+        when(encounterService.createEncounter(any(Encounter.class))).thenReturn(encounter);
+        when(encounterMapper.toResponse(any(Encounter.class))).thenReturn(encounterResponse);
+
+        mockMvc.perform(post("/api/encounters")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(validJson))
+                .andExpect(status().isCreated());
     }
 }
